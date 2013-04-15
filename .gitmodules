@@ -1,3 +1,6 @@
 [submodule "lib/modules/podlove_web_player/player"]
 	path = lib/modules/podlove_web_player/player
 	url = git://github.com/podlove/podlove-web-player.git
+[submodule "lib/modules/shownotes_shortcode/shownotes"]
+	path = lib/modules/shownotes_shortcode/shownotes
+	url = git@github.com:SimonWaldherr/podlove-shownotes.git
