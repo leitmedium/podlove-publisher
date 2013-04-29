@@ -7,17 +7,27 @@ function format_bytes( $size, $decimals = 2 ) {
     return round( $size, $decimals ) . $units[$i];
 }
 
+function get_blog_prefix() {
+	$blog_prefix = '';
+
+	if ( is_multisite() && ! is_subdomain_install() && is_main_site() )
+		$blog_prefix = '/blog';
+
+	return $blog_prefix;
+}
+
 function get_setting( $name ) {
 	
 	$defaults = array(
-		'merge_episodes'         => 'off', // can't be "on"
+		'merge_episodes'         => 'on',
 		'hide_wp_feed_discovery' => 'off',
 		'custom_episode_slug'    => '/podcast/%podcast%/',
 		'enable_episode_record_date'      => 0,
 		'enable_episode_publication_date' => 0,
 		'url_template' => '%media_file_base_url%%episode_slug%%suffix%.%format_extension%',
 		'podlove_setting_redirect' => array(),
-		'use_post_permastruct' => 'off',
+		'use_post_permastruct' => 'on',
+		'episode_archive' => 'on',
 		'episode_archive_slug' => '/podcast/',
 	);
 

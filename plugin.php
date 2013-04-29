@@ -392,6 +392,8 @@ function show_critical_errors() {
 	if ( count( $errors['errors'] ) + count( $errors['notices'] ) === 0 )
 		return;
 
+	// if there are errors, always run the system report to see if they are gone
+	run_system_report();
     ?>
     <div class="error">
         
@@ -534,6 +536,15 @@ function autoinsert_templates_into_content( $content ) {
 }
 add_filter( 'the_content', '\Podlove\autoinsert_templates_into_content' );
 
+
+function podlove_and_wordpress_permastructs_are_equal() {
+
+	if ( \Podlove\get_setting( 'use_post_permastruct' ) == 'on' )
+		return true;
+
+	return untrailingslashit( \Podlove\get_setting( 'custom_episode_slug' ) ) == untrailingslashit( str_replace( '%postname%', '%podcast%', get_option( 'permalink_structure' ) ) );
+}
+
 /**
  * Changes the permalink for a custom post type
  *
@@ -549,12 +560,11 @@ function add_podcast_rewrite_rules() {
 	$wp_rewrite->add_rewrite_tag( "%podcast%", '([^/]+)', "post_type=podcast&name=" );
 	
 	// Use same permastruct as post_type 'post'
-	$use_post_permastruct = \Podlove\get_setting( 'use_post_permastruct' );
-	if ( 'on' == $use_post_permastruct )
+	if ( podlove_and_wordpress_permastructs_are_equal() )
 		$permastruct = str_replace( '%postname%', '%podcast%', get_option( 'permalink_structure' ) );
 
-	// Enable generic rules for pages if permalink structure doesn't begin with a wildcard
-	if ( "/%podcast%" == $permastruct && 'on' != $use_post_permastruct ) {
+	// Enable CGI-style routes if permalink structure doesn't contain a wildcard
+	if ( stristr( $permastruct, '%podcast%' ) === FALSE ) {
 		// Generate custom rewrite rules
 		$wp_rewrite->matches = 'matches';
 		$wp_rewrite->extra_rules = array_merge( $wp_rewrite->extra_rules, $wp_rewrite->generate_rewrite_rules( "%podcast%", EP_PERMALINK, true, true, false, true, true ) );
@@ -570,8 +580,12 @@ function add_podcast_rewrite_rules() {
 	// Add archive pages
 	if ( 'on' == \Podlove\get_setting( 'episode_archive' ) ) {
 		$archive_slug = trim( \Podlove\get_setting( 'episode_archive_slug' ), '/' );
-		$wp_rewrite->add_rule( "{$archive_slug}/?$", "index.php?post_type=podcast", 'top' );
-		$wp_rewrite->add_rule( "{$archive_slug}/{$wp_rewrite->pagination_base}/([0-9]{1,})/?$", 'index.php?post_type=podcast&paged=$matches[1]', 'top' );
+
+		$blog_prefix = \Podlove\get_blog_prefix();
+		$blog_prefix = $blog_prefix ? trim( $blog_prefix, '/' ) . '/' : '';
+
+		$wp_rewrite->add_rule( "{$blog_prefix}{$archive_slug}/?$", "index.php?post_type=podcast", 'top' );
+		$wp_rewrite->add_rule( "{$blog_prefix}{$archive_slug}/{$wp_rewrite->pagination_base}/([0-9]{1,})/?$", 'index.php?post_type=podcast&paged=$matches[1]', 'top' );
 	}
 }
 
@@ -583,7 +597,7 @@ function podcast_permalink_proxy($query_vars) {
 	if ( false == ( isset( $query_vars["name"] ) || isset( $query_vars["p"] ) ) )
 		return $query_vars;
 		
-	$query_vars["post_type"] = array("post", "podcast");
+	$query_vars["post_type"] = array("page", "post", "podcast");
 	return $query_vars;
 }
 
@@ -611,14 +625,14 @@ function generate_custom_post_link( $post_link, $id, $leavename = false, $sample
 	
 	// Get permastruct
 	$permastruct = \Podlove\get_setting( 'custom_episode_slug' );
-	if ( 'on' == \Podlove\get_setting( 'use_post_permastruct' ) )
+
+	if ( podlove_and_wordpress_permastructs_are_equal() )
 		$permastruct = str_replace( '%postname%', '%podcast%', get_option( 'permalink_structure' ) );
 	
 	// Only post_name in URL
-	if ( "%podcast%" == $permastruct && ( !$draft_or_pending || $sample ) )
+	if ( "/%podcast%" == $permastruct && ( !$draft_or_pending || $sample ) )
 		return home_url( user_trailingslashit( $post->post_name ) );
 	
-	//
 	$unixtime = strtotime( $post->post_date );
 	$post_link = str_replace( '%year%', date( 'Y', $unixtime ), $post_link );
 	$post_link = str_replace( '%monthnum%', date( 'm', $unixtime ), $post_link );
@@ -664,7 +678,7 @@ if ( get_option( 'permalink_structure' ) != '' ) {
 	add_action( 'wp', '\Podlove\no_verbose_page_rules' );		
 	add_filter( 'post_type_link', '\Podlove\generate_custom_post_link', 10, 4 );
 
-	if ( 'on' == \Podlove\get_setting( 'use_post_permastruct' ) ) {
+	if ( podlove_and_wordpress_permastructs_are_equal() ) {
 		add_filter( 'request', '\Podlove\podcast_permalink_proxy' );
 	}
 }
