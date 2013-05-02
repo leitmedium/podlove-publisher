@@ -3,4 +3,4 @@
 	url = git://github.com/podlove/podlove-web-player.git
 [submodule "lib/modules/shownotes_shortcode/shownotes"]
 	path = lib/modules/shownotes_shortcode/shownotes
-	url = git@github.com:SimonWaldherr/podlove-shownotes.git
+	url = git@github.com:SimonWaldherr/wp-osf-shownotes.git
