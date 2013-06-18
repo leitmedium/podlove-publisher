@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "c4b30bdbf842c3aa206503e4d677032c",
+    "hash": "ba5f39fc8e6112f120afab345d306aa7",
     "packages": [
         {
             "name": "monolog/monolog",

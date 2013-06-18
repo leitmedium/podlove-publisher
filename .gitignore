@@ -3,3 +3,8 @@
 podlove.sublime-*
 wprelease.yml
 composer.phar
+codecept.phar
+tests/_log/*
+tests/unit.suite.yml
+tests/functional.suite.yml
+tests/acceptance.suite.yml
