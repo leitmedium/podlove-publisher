@@ -11,11 +11,15 @@ class WebHelper extends \Codeception\Module
 		putenv( 'MYSQL_PWD=' . $this->config['password'] );
 
 		$command = sprintf(
-			"gzcat %s | mysql -u %s %s",
-			$this->config['file'],
+			"mysql -u %s %s < tests/_data/dump.sql",
 			$this->config['username'],
 			$this->config['database']
 		);
 		exec( $command );
 	}
+
+	// HOOK: used after configuration is loaded
+    public function _initialize() {
+    	exec( 'gunzip -c ' . $this->config['file'] . ' > tests/_data/dump.sql' );
+    }
 }

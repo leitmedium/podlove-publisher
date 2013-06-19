@@ -5,6 +5,7 @@ wprelease.yml
 composer.phar
 codecept.phar
 tests/_log/*
+tests/_data/*.sql
 tests/unit.suite.yml
 tests/functional.suite.yml
 tests/acceptance.suite.yml
