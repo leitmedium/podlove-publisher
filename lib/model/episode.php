@@ -102,7 +102,7 @@ class Episode extends Base {
 		$podcast = Podcast::get_instance();
 		$asset_assignment = AssetAssignment::get_instance();
 
-		if ( $asset_assignment->image == 0 )
+		if ( $asset_assignment->image == '0' )
 			return;
 
 		if ( $asset_assignment->image == 'manual' )

@@ -72,6 +72,22 @@ function activate_for_current_blog() {
 		update_option( 'podlove', $settings );
 	}
 
+	// install templates
+
+	if ( ! Model\Template::has_entries() ) {
+		require( \Podlove\PLUGIN_DIR . 'templates/list_templates.php' );
+
+		// Insert templates for feed and episode lists
+		$wpdb->query( 
+			'INSERT INTO `'.$table_name.'` (`title`, `before`, `content`, `after`, `type`, `readonly`)
+			VALUES        ("episode-list", "'.$episode_list_before.'", "'.$episode_list_content.'", "'.$episode_list_after.'", "list", 1);'
+			);
+		$wpdb->query( 
+			'INSERT INTO `'.$table_name.'` (`title`, `before`, `content`, `after`, `type`, `readonly`)
+			VALUES ("feed-list",  "'.$feed_list_before.'", "'.$feed_list_content.'", "'.$feed_list_after.'", "list", 1);'
+			);
+	}
+
 }
 
 /**

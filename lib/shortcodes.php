@@ -292,11 +292,18 @@ function template_list( $attributes , $whatkindof) {
                 $numberofobjectstocall = 10;
         }
 
-        // Setting orderby. Default is ID
+        // Setting orderby. Default is date
         if(isset($attributes["orderby"]) AND is_string($attributes["orderby"])) {
                 $objectsorderedby = $attributes["orderby"];
         } else {
-                $objectsorderedby = "ID";
+        	switch ($whatkindof) {
+        		case 'feeds' :
+        			$objectsorderedby = "ID";
+        		break;
+        		case 'episodes' :
+        			$objectsorderedby = "date";
+        		break;
+        	}           	
         }
 
         // Setting order. Default is DESC
@@ -318,6 +325,7 @@ function template_list( $attributes , $whatkindof) {
                             $tobereplaced = array(	"%feed-id%" => $feed->id,
                                                     "%feed-title%" => $feed->name,
                                                     "%feed-mediafile%" => $feed->episode_asset()->title,
+                                                    "%feed-mediafile-stripped%" => strtolower(str_replace(" ", '_', $feed->episode_asset()->title)),
                                                     "%feed-url%" => $feed->get_subscribe_url(),
                                                     "%feed-slug%" => $feed->slug);
                             $output = str_replace(array_keys($tobereplaced), array_values($tobereplaced), $output);
@@ -331,14 +339,21 @@ function template_list( $attributes , $whatkindof) {
                     $output = $template->before;
                     foreach($episodes->posts as $episode_number => $episode) {
                             $episode_details = Model\Episode::find_one_by_post_id( $episode->ID );
-                            $output = $output.$template->content;                            
+                            $output = $output.$template->content;    
+                            
+                            if( strlen($episode_details->duration) <= '8' ) {
+                            	$episode_duration = $episode_details->duration;
+                            } else {
+                            	$episode_duration = substr($episode_details->duration, 0, 8);
+                            }    
+                            
                             $tobereplaced = array(	"%episode-id%" => $episode_details->id,
                                                     "%episode-title%" => $episode->post_title,
                                                     "%episode-subtitle%" => $episode_details->subtitle,
                                                     "%episode-url%" => get_permalink($episode->ID),
                                                     "%episode-content%" => $episode->post_content,
                                                     "%episode-cover%" => $episode_details->get_cover_art_with_fallback(),
-                                                    "%episode-duration%" => $episode_details->duration,
+                                                    "%episode-duration%" => $episode_duration,
                                                     "%episode-summary%" => $episode_details->summary,
                                                     "%episode-date%" => date('d.m.Y', strtotime($episode->post_date)),
                                                     "%episode-slug%" => $episode_details->slug);
