@@ -804,3 +804,49 @@ add_action( 'admin_print_styles', function () {
 	wp_register_style( 'podlove-admin-font', \Podlove\PLUGIN_URL . '/css/admin-font.css', array(), \Podlove\get_plugin_header( 'Version' ) );
 	wp_enqueue_style( 'podlove-admin-font' );
 } );
+
+add_filter('the_content', function($content) {
+	global $post;
+
+	$loader = new \Twig_Loader_String();
+	$twig = new \Twig_Environment($loader);
+
+	$context = array();
+
+	$episode = Model\Episode::find_one_by_property( 'post_id', $post->ID );
+	if ($episode) {
+		$context['episode'] = new Template\Episode($episode);
+	}
+
+	$context['feeds'] = array_map(function ($feed) {
+			return new Template\Feed($feed);
+		}, Model\Feed::all());
+
+	$template = <<< TPL
+{% if episode %}
+	<p>
+		This is episode <strong>{{ episode.title }}</strong>.<br>
+		Duration: {{ episode.duration }}
+
+		<ul>
+		{% for contributor in episode.contributors %}
+			<li>{{ contributor.name }} ({{ contributor.role }})</li>
+		{% endfor %}
+		</ul>
+	</p>
+{% endif %}
+
+<p>
+	Subscribe to one of {{ feeds|length }} feeds:
+	<ul>
+	{% for feed in feeds %}
+		<li><a href="{{ feed.url }}">{{ feed.title }}</a></li>
+	{% endfor %}
+	</ul>
+</p>
+
+TPL;
+
+	return $twig->render($template, $context) . $content;
+
+});
